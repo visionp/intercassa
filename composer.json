@@ -1,0 +1,21 @@
+{
+    "name": "vision/yii2-interkassa",
+    "description": "Pay system intercassa",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","interkassa"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Petrenko Aleksandr",
+            "email": "visionp@bigmir.net"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "vision\\interkassa\\": ""
+        }
+    }
+}
