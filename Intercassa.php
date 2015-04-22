@@ -25,7 +25,7 @@ namespace vision\interkassa;
 
 use Yii;
 use yii\base\Component;
-use common\models\IntercassaPays;
+use vision\interkassa\models\IntercassaPays;
 use common\exceptions\ExceptionNullParams;
 use common\exceptions\ExceptionsIntercassa;
 
