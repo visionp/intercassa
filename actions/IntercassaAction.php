@@ -12,7 +12,7 @@
 
 namespace vision\interkassa\actions;
 
-use yii\base\Action;
+use \yii\base\Action;
 
 
 class IntercassaAction extends Action{
