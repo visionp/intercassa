@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models;
+namespace vision\interkassa\models;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;

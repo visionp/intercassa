@@ -10,7 +10,7 @@
  * метод должен вернуть false|true
  */
 
-namespace common\actions;
+namespace vision\interkassa\actions;
 
 use yii\base\Action;
 

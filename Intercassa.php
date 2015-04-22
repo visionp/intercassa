@@ -21,7 +21,7 @@
  *
  */
 
-namespace common\components;
+namespace vision\interkassa;
 
 use Yii;
 use yii\base\Component;

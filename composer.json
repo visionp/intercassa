@@ -17,5 +17,11 @@
         "psr-4": {
             "vision\\interkassa\\": ""
         }
-    }
+    },
+    "repositories":[
+        {
+            "type": "git",
+            "url": "https://github.com/visionp/intercassa.git"
+        }
+    ]
 }
