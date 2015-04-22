@@ -23,7 +23,7 @@
  *  ]);
  */
 
-namespace common\widgets;
+namespace vision\interkassa\widgets;
 
 use yii\base\Widget;
 use yii\helpers\Html;
