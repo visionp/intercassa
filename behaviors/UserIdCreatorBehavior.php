@@ -5,11 +5,11 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace common\behaviors;
+namespace vision\interkassa\behaviors;
 
-use yii\db\BaseActiveRecord;
-use yii\db\Expression;
-use yii\behaviors\AttributeBehavior;
+use \yii\db\BaseActiveRecord;
+use \yii\db\Expression;
+use \yii\behaviors\AttributeBehavior;
 
 
 class UserIdCreatorBehavior extends AttributeBehavior
