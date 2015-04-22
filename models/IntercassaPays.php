@@ -3,8 +3,8 @@
 namespace vision\interkassa\models;
 
 use Yii;
-use yii\behaviors\TimestampBehavior;
-use common\behaviors\UserIdCreatorBehavior;
+use \yii\behaviors\TimestampBehavior;
+use \vision\interkassa\behaviors\UserIdCreatorBehavior;
 
 /**
  * This is the model class for table "intercassa_pays".
