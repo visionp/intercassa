@@ -27,7 +27,9 @@ namespace vision\interkassa\widgets;
 
 use yii\base\Widget;
 use yii\helpers\Html;
+/*
 use common\exceptions\ExceptionsIntercassa;
+*/
 
 class IntercassaWidget extends Widget {
 
