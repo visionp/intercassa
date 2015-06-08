@@ -38,15 +38,15 @@ class Intercassa extends Component {
     const DEFAULT_CUR    = 'UAH';
     const DEFAULT_STATE  = 'new';
 
-    public $secretTestKey;
-    public $secretKey;
-    public $IdCassa;
-    public $confFields = null;
+    public $secret_test_key;
+    public $secret_key;
+    public $id_cassa;
+    public $conf_fields = [];
     public $is_test = true;
 
 
     //доверенные ip адресса
-    public $trustedIps = Array(
+    public $trusted_ips = Array(
         '151.80.190.97',
         '151.80.190.98',
         '151.80.190.99',
@@ -85,18 +85,19 @@ class Intercassa extends Component {
     /**
      * Значение полей по-умолчанию
      */
-    protected $defaultConf = Array(
+    protected $default = [
         'ik_cur'   => self::DEFAULT_CUR,    //Валюта по умолчанию
         'ik_desc'  => 'Пополнение баланса'  //описание платежа
-    );
+    ];
 
     /**
      * Создает новую запись о платеже со статусом new
      * @param null $amount
      * @param null $user_id
-     * @param null $comment
-     * @return array|null
+     *
      * @throws IntercassaException
+     *
+     * @return array
      */
     public function newPay($amount = null, $user_id = null) {
         return $this->createPay($amount, $user_id);
@@ -111,7 +112,8 @@ class Intercassa extends Component {
      * @param $postData
      *
      * @throws IntercassaException
-     * @return object
+     *
+     * @return IntercassaPays
      */
     public function updatePay($ip, $postData) {
         $return = null;
@@ -152,14 +154,14 @@ class Intercassa extends Component {
 
 
     /**
-     * Возвращает конфигурацию полей
+     * Возвращает конфигурацию
      * @return array
      */
     public function getConfigFields() {
         $_config = Array();
 
-        if(is_array($this->confFields)) {
-            $_config = array_merge($_config, $this->confFields);
+        if(is_array($this->conf_ields)) {
+            $_config = array_merge($_config, $this->conf_fields);
         }
 
         $_config['ik_co_id'] = $this->getIdCassa();
@@ -235,7 +237,7 @@ class Intercassa extends Component {
      * @param $params
      */
     protected function setDefaultParams(&$params) {
-        foreach($this->defaultConf as $name => $val){
+        foreach($this->default_conf as $name => $val){
             if(!isset($params[$name])) {
                 $params[$name] = $val;
             }
@@ -251,10 +253,10 @@ class Intercassa extends Component {
      * @return mixed
      */
     protected function getIdCassa() {
-        if(!$this->IdCassa) {
+        if(!$this->id_cassa) {
             throw new IntercassaException('Не указан идентификатор кассы');
         }
-        return $this->IdCassa;
+        return $this->id_cassa;
     }
 
 
@@ -281,9 +283,9 @@ class Intercassa extends Component {
         if($model->save()) {
             return $model->toArray();
         } else {
-            throw new IntercassaException('Не удалось создать запись о счете');
+            throw new IntercassaException('Не удалось создать запись о счете.');
         }
-        return null;
+        return false;
     }
 
 

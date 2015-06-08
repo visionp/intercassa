@@ -63,9 +63,9 @@ class IntercassaAction extends Action{
 
     protected function updatePay() {
         $dataPost = \Yii::$app->request->post();
-        $userIP   = \Yii::$app->request->userIP;
+        $userIp   = \Yii::$app->request->userIP;
 
-        return \Yii::$app->intercassa->updatePay($userIP, $dataPost);
+        return \Yii::$app->intercassa->updatePay($userIp, $dataPost);
 
     }
 

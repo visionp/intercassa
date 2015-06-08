@@ -83,9 +83,9 @@ class IntercassaWidget extends Widget {
             if($val == null || $name == null) {
                 continue;
             }
-            if(in_array($name, array('ik_am')) && $this->is_edit_amount) {
+            if(in_array($name, ['ik_am']) && $this->is_edit_amount) {
 
-                $params = Array('class'    => $this->classInput);
+                $params = ['class' => $this->classInput];
                 if(!$this->is_edit_amount) {
                     $params['disabled'] = 1;
                 }
@@ -114,12 +114,6 @@ class IntercassaWidget extends Widget {
         ]);
         $content .= Html::endForm();
         return $content;
-    }
-
-
-    public function init()
-    {
-        parent::init();
     }
 
 
