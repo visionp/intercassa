@@ -6,7 +6,6 @@
  * Time: 16:01
  *
  *
- * Класс предназначен для работы с Интеркассой
  *
  * Intercassa::newPay($amount = null, $user_id = null)
  * -создать новый платеж, передаем сумму, id-пользователя (по умолчанию берется id текущего)
@@ -21,15 +20,12 @@
  *
  */
 
-namespace vision\interkassa;
+namespace common\components;
 
 use Yii;
 use yii\base\Component;
 use vision\interkassa\models\IntercassaPays;
-/*
-use vision\interkassa\exceptions\ExceptionNullParams;
-use vision\interkassa\exceptions\ExceptionsIntercassa;
-*/
+use vision\interkassa\exceptions\IntercassaException;
 
 
 /**
@@ -40,33 +36,16 @@ class Intercassa extends Component {
 
     const STATUS_SUCCESS = 'success';
     const DEFAULT_CUR    = 'UAH';
-    const DEFAULT_STATE    = 'new';
+    const DEFAULT_STATE  = 'new';
 
-    /**
-     * @var
-     */
     public $secretTestKey;
-    /**
-     * @var
-     */
     public $secretKey;
-    /**
-     * @var
-     */
     public $IdCassa;
-    /**
-     * @var null
-     */
     public $confFields = null;
-    /**
-     * @var bool
-     */
     public $is_test = true;
 
+
     //доверенные ip адресса
-    /**
-     * @var array
-     */
     public $trustedIps = Array(
         '151.80.190.97',
         '151.80.190.98',
@@ -78,11 +57,11 @@ class Intercassa extends Component {
         '151.80.190.104'
     );
 
+
     /**
      * Поля платежа которые мы храним и обновляем
-     * @var array
      */
-    private $save_fields = Array(
+    protected $save_fields = Array(
         'ik_inv_st'    => 'invoice_state',     //состояние платежа
         'ik_inv_id'    => 'invoice_id',        //Идентификатор платежа
         'ik_trn_id'    => 'transaction_id',    //Идентификатор транзакции
@@ -100,28 +79,24 @@ class Intercassa extends Component {
 
     /**
      * url отправки данных формы
-     * @var string
      */
-    private $_actionUrl = 'https://sci.interkassa.com/';
-
+    protected $_actionUrl = 'https://sci.interkassa.com/';
 
     /**
      * Значение полей по-умолчанию
-     * @var array
      */
-    private $defaultConf = Array(
+    protected $defaultConf = Array(
         'ik_cur'   => self::DEFAULT_CUR,    //Валюта по умолчанию
-        'ik_desc'  => 'Пополнение баланса'  //описнаие платежа
+        'ik_desc'  => 'Пополнение баланса'  //описание платежа
     );
-
 
     /**
      * Создает новую запись о платеже со статусом new
      * @param null $amount
      * @param null $user_id
      * @param null $comment
-     * @return int|null
-     * @throws ExceptionsIntercassa
+     * @return array|null
+     * @throws IntercassaException
      */
     public function newPay($amount = null, $user_id = null) {
         return $this->createPay($amount, $user_id);
@@ -131,17 +106,18 @@ class Intercassa extends Component {
     /**
      * Обновляет данные о платеже пришедшие с системы Интеркассы
      * перед обновлением проверяются источник, ЭЦП
+     *
      * @param $ip
      * @param $postData
-     * @return null|object
+     *
+     * @throws IntercassaException
+     * @return object
      */
     public function updatePay($ip, $postData) {
-
         $return = null;
 
         if(!isset($postData['ik_pm_no'])) {
-            \Yii::error('Id pay is empty', 'intercassa');
-            return $return;
+            throw new ExceptionsIntercassa('Id pay is empty');
         }
 
         if($this->checkRequest($ip, $postData)){
@@ -151,7 +127,7 @@ class Intercassa extends Component {
                 ->one();
 
             if(!$model_pays) {
-                \Yii::error('Id pay is not exist', 'intercassa');
+                throw new IntercassaException('Id pay is not exist');
                 return $return;
             }
 
@@ -167,7 +143,7 @@ class Intercassa extends Component {
             if($model_pays->save()) {
                 return $model_pays;
             } else {
-                \Yii::error($model_pays->getErrors(), 'intercassa');
+                throw new IntercassaException(implode(', ',$model_pays->getErrors()));
             }
         }
 
@@ -206,7 +182,8 @@ class Intercassa extends Component {
      * Проверка источника пришедших данных
      * @param $ip
      * @param $postData
-     * @return bool
+     *
+     * @return boolean
      */
     private function checkRequest($ip, $postData) {
         $result = false;
@@ -220,27 +197,34 @@ class Intercassa extends Component {
     /**
      * Проверка ЭЦП
      * @param array $data
-     * @return bool
+     *
+     * @throws IntercassaException
+     *
+     * @return boolean
      */
     private function checkSign(Array $data) {
         $sign = $this->createSign($data);
         $result = $sign === $data['ik_sign'];
         if(!$result) {
-            \Yii::error('Secret keys do not match ' . $sign . ' != ' . $data['ik_sign'], 'intercassa');
+            throw new IntercassaException('Secret keys do not match ' . $sign . ' != ' . $data['ik_sign']);
         }
         return $result;
 
     }
 
+
     /**
      * Проверка IP
      * @param $ip
-     * @return bool
+     *
+     * @throws IntercassaException
+     *
+     * @return boolean
      */
-    private function checkIps($ip) {
+    protected function checkIps($ip) {
         $result = in_array($ip, $this->trustedIps);
         if(!$result){
-            \Yii::error('Unresolved ip ' . $ip, 'intercassa');
+            throw new IntercassaException('Unresolved ip ' . $ip);
         }
         return $result;
     }
@@ -250,7 +234,7 @@ class Intercassa extends Component {
      * Устанавливает значение конф по умолчанию
      * @param $params
      */
-    private function setDefaultParams(&$params) {
+    protected function setDefaultParams(&$params) {
         foreach($this->defaultConf as $name => $val){
             if(!isset($params[$name])) {
                 $params[$name] = $val;
@@ -261,12 +245,14 @@ class Intercassa extends Component {
 
     /**
      * Возвращает id кассы
+     *
+     * @throws IntercassaException
+     *
      * @return mixed
-     * @throws ExceptionNullParams
      */
-    private function getIdCassa() {
+    protected function getIdCassa() {
         if(!$this->IdCassa) {
-            throw new ExceptionNullParams('Не указан идентификатор кассы');
+            throw new IntercassaException('Не указан идентификатор кассы');
         }
         return $this->IdCassa;
     }
@@ -276,25 +262,26 @@ class Intercassa extends Component {
      * Создать новую запись о платеже
      * @param null $amount
      * @param null $user_id
-     * @param null $comment
+     *
+     * @throws IntercassaException
+     *
      * @return int|null
-     * @throws ExceptionsIntercassa
      */
-    private function createPay($amount = null, $user_id = null) {
+    protected function createPay($amount = null, $user_id = null) {
         if(!$user_id) {
             $user_id = \Yii::$app->user->getId();
         }
 
-        $model = new IntercassaPays();
-
-        $model->user_id = $user_id;
-        $model->amount     = $amount;
-        $model->invoice_state  = self::DEFAULT_STATE;
+        $model = new IntercassaPays([
+            'user_id' => $user_id,
+            'amount'  => $amount,
+            'invoice_state' => self::DEFAULT_STATE
+        ]);
 
         if($model->save()) {
-            return $model->id;
+            return $model->toArray();
         } else {
-            throw new ExceptionsIntercassa('Не удалось создать запись о счете');
+            throw new IntercassaException('Не удалось создать запись о счете');
         }
         return null;
     }
@@ -303,6 +290,7 @@ class Intercassa extends Component {
     /**
      * Возвращает ЭЦП исходя из переданных данных
      * @param array $dataSet
+     *
      * @return string
      */
     private function createSign (Array $dataSet) {
