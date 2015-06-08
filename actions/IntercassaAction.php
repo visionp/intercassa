@@ -13,6 +13,7 @@
 namespace vision\interkassa\actions;
 
 use \yii\base\Action;
+use vision\interkassa\exceptions\IntercassaException;
 
 
 class IntercassaAction extends Action{
@@ -44,7 +45,7 @@ class IntercassaAction extends Action{
                 $response->content = 'Ok';
             }
 
-        } catch(\Exception $e) {
+        } catch(IntercassaException $e) {
             $transaction->rollback();
         }
 
@@ -55,7 +56,7 @@ class IntercassaAction extends Action{
 
     protected function runBusinessLogic($model_intercassa) {
         if(!$this->successPay($model_intercassa)) {
-            throw new \Exception('error in business logic');
+            throw new IntercassaException('error in business logic');
         }
     }
 

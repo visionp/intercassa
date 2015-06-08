@@ -23,13 +23,11 @@
  *  ]);
  */
 
-namespace vision\interkassa\widgets;
+namespace common\widgets;
 
-use \yii\base\Widget;
-use \yii\helpers\Html;
-/*
+use yii\base\Widget;
+use yii\helpers\Html;
 use common\exceptions\ExceptionsIntercassa;
-*/
 
 class IntercassaWidget extends Widget {
 
@@ -49,18 +47,21 @@ class IntercassaWidget extends Widget {
     private $method      = 'post';
 
 
-    protected function getConfigFields()
-    {
+    protected function getConfigFields() {
         $_config_fields = \Yii::$app->intercassa->configFields;
         $config_fields = array_merge(
             $_config_fields,
             isset($this->config_fields) && is_array($this->config_fields) ? $this->config_fields :[]
         );
+
         if(!$this->is_edit_amount && !isset($this->amount) && !$this->amount) {
             throw new ExceptionsIntercassa('Не указано сумму транзакции');
         }
+
         $this->amount = $this->amount ? $this->amount : 0;
-        $config_fields['ik_pm_no'] = \Yii::$app->intercassa->newPay();
+        $newPay = \Yii::$app->intercassa->newPay($this->amount);
+
+        $config_fields['ik_pm_no'] = $newPay['id'];
         $config_fields['ik_am']    = $this->amount;
 
         if($this->description ) {
