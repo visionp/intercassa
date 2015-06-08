@@ -27,7 +27,7 @@ namespace common\widgets;
 
 use yii\base\Widget;
 use yii\helpers\Html;
-use common\exceptions\ExceptionsIntercassa;
+use vision\interkassa\exceptions\IntercassaException;
 
 class IntercassaWidget extends Widget {
 
@@ -55,7 +55,7 @@ class IntercassaWidget extends Widget {
         );
 
         if(!$this->is_edit_amount && !isset($this->amount) && !$this->amount) {
-            throw new ExceptionsIntercassa('Не указано сумму транзакции');
+            throw new IntercassaException('Не указано сумму транзакции');
         }
 
         $this->amount = $this->amount ? $this->amount : 0;
@@ -125,7 +125,12 @@ class IntercassaWidget extends Widget {
 
     public function run()
     {
-        return $this->getMainContent();
+        try{
+            $return = $this->getMainContent();
+        }catch(IntercassaException $e){
+            $return = $e->getMessage();
+        }
+        return $return;
     }
 
 } 
