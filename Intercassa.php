@@ -26,6 +26,9 @@ use Yii;
 use yii\base\Component;
 use vision\interkassa\models\IntercassaPays;
 use vision\interkassa\exceptions\IntercassaException;
+use yii\base\InvalidConfigException;
+use yii\base\InvalidParamException;
+use yii\base\UnknownClassException;
 
 
 /**
@@ -37,6 +40,7 @@ class Intercassa extends Component {
     const STATUS_SUCCESS = 'success';
     const DEFAULT_CUR    = 'UAH';
     const DEFAULT_STATE  = 'new';
+
 
     public $secret_test_key;
     public $secret_key;
@@ -61,7 +65,7 @@ class Intercassa extends Component {
     /**
      * Поля платежа которые мы храним и обновляем
      */
-    protected $save_fields = Array(
+    protected $save_fields = [
         'ik_inv_st'    => 'invoice_state',     //состояние платежа
         'ik_inv_id'    => 'invoice_id',        //Идентификатор платежа
         'ik_trn_id'    => 'transaction_id',    //Идентификатор транзакции
@@ -74,7 +78,7 @@ class Intercassa extends Component {
         'ik_pw_via'    => 'payway_via',        //Выбранный способ оплаты
         'ik_inv_crt'   => 'invoice_created',   //Время создания платежа
         'ik_inv_prc'   => 'invoice_processed'  //Время проведения
-    );
+    ];
 
 
     /**
@@ -119,7 +123,7 @@ class Intercassa extends Component {
         $return = null;
 
         if(!isset($postData['ik_pm_no'])) {
-            throw new ExceptionsIntercassa('Id pay is empty');
+            throw new ExceptionsIntercassa('Id pay is empty', $postData);
         }
 
         if($this->checkRequest($ip, $postData)){
@@ -129,7 +133,7 @@ class Intercassa extends Component {
                 ->one();
 
             if(!$model_pays) {
-                throw new IntercassaException('Id pay is not exist');
+                throw new IntercassaException('Id pay is not exist', $postData);
                 return $return;
             }
 
