@@ -5,18 +5,9 @@
  * Date: 17.04.2015
  * Time: 16:01
  *
- *
- *
- * Intercassa::newPay($amount = null, $user_id = null)
- * -создать новый платеж, передаем сумму, id-пользователя (по умолчанию берется id текущего)
- *
- *
- * Intercassa::updatePay($ip, $postData)
- * - обновить платеж исходя из пришедших данных, в метод
- * передается адресс источника и данные которые были получены
- *
- * Intercassa::getConfigFields()
- * -получить конфигурацию
+ * Компонент Intercassa
+ * предоставляет api
+ * для работі с системой
  *
  */
 
@@ -42,14 +33,18 @@ class Intercassa extends Component {
     const DEFAULT_STATE  = 'new';
 
 
+    public $successPay;
     public $secret_test_key;
     public $secret_key;
     public $id_cassa;
-    public $conf_fields = [];
+    public $config = [];
     public $is_test = true;
 
 
-    //доверенные ip адресса
+    /**
+     * Доверенные ip адресса
+     * @var array
+     */
     public $trusted_ips = Array(
         '151.80.190.97',
         '151.80.190.98',
@@ -64,9 +59,11 @@ class Intercassa extends Component {
 
     /**
      * Поля платежа которые мы храним и обновляем
+     *
+     * @var array
      */
     protected $save_fields = [
-        'ik_inv_st'    => 'invoice_state',     //состояние платежа
+        'ik_inv_st'    => 'invoice_state',     //Состояние платежа
         'ik_inv_id'    => 'invoice_id',        //Идентификатор платежа
         'ik_trn_id'    => 'transaction_id',    //Идентификатор транзакции
         'ik_co_prs_id' => 'checkout_purse_id', //Идентификатор кошелька кассы
@@ -86,22 +83,25 @@ class Intercassa extends Component {
      */
     protected $_actionUrl = 'https://sci.interkassa.com/';
 
+
     /**
      * Значение полей по-умолчанию
+     *
+     * @var array
      */
     protected $default = [
         'ik_cur'   => self::DEFAULT_CUR,    //Валюта по умолчанию
         'ik_desc'  => 'Пополнение баланса'  //описание платежа
     ];
 
+
     /**
-     * Создает новую запись о платеже со статусом new
+     * Создаем новую запись о платеже со статусом new
+     *
      * @param null $amount
      * @param null $user_id
-     *
+     * @return int|null
      * @throws IntercassaException
-     *
-     * @return array
      */
     public function newPay($amount = null, $user_id = null) {
         return $this->createPay($amount, $user_id);
@@ -109,7 +109,7 @@ class Intercassa extends Component {
 
 
     /**
-     * Обновляет данные о платеже пришедшие с системы Интеркассы
+     * Обновляет данные о платеже пришедшие с Интеркассы
      * перед обновлением проверяются источник, ЭЦП
      *
      * @param $ip
@@ -119,25 +119,25 @@ class Intercassa extends Component {
      *
      * @return IntercassaPays
      */
-    public function updatePay($ip, $postData) {
+    public function updatePay($ip, $data) {
         $return = null;
 
-        if(!isset($postData['ik_pm_no'])) {
+        if(!isset($data['ik_pm_no'])) {
             throw new ExceptionsIntercassa('Id pay is empty', $postData);
         }
 
-        if($this->checkRequest($ip, $postData)){
+        if($this->checkRequest($ip, $data)){
             $model_pays = IntercassaPays::find()
-                ->where(['id'  => $postData['ik_pm_no']])
+                ->where(['id'  => $data['ik_pm_no']])
                 ->andWhere(['!=', 'invoice_state', self::STATUS_SUCCESS])
                 ->one();
 
             if(!$model_pays) {
-                throw new IntercassaException('Id pay is not exist', $postData);
+                throw new IntercassaException('Id pay is not exist', $data);
                 return $return;
             }
 
-            foreach($postData as $name => $val) {
+            foreach($data as $name => $val) {
                 if(array_key_exists($name, $this->save_fields) && $val) {
                     $field_name = $this->save_fields[$name];
                     if($model_pays->hasAttribute($field_name)) {
@@ -162,7 +162,7 @@ class Intercassa extends Component {
      * @return array
      */
     public function getConfigFields() {
-        $_config = Array();
+        $_config = [];
 
         if(is_array($this->conf_ields)) {
             $_config = array_merge($_config, $this->conf_fields);
@@ -170,7 +170,6 @@ class Intercassa extends Component {
 
         $_config['ik_co_id'] = $this->getIdCassa();
         $this->setDefaultParams($_config);
-
         return $_config;
     }
 
@@ -221,11 +220,10 @@ class Intercassa extends Component {
 
     /**
      * Проверка IP
+     *
      * @param $ip
-     *
+     * @return bool
      * @throws IntercassaException
-     *
-     * @return boolean
      */
     protected function checkIps($ip) {
         $result = in_array($ip, $this->trustedIps);
@@ -252,13 +250,12 @@ class Intercassa extends Component {
     /**
      * Возвращает id кассы
      *
-     * @throws IntercassaException
-     *
      * @return mixed
+     * @throws InvalidConfigException
      */
     protected function getIdCassa() {
         if(!$this->id_cassa) {
-            throw new IntercassaException('Не указан идентификатор кассы');
+            throw new InvalidConfigException('Не указан идентификатор кассы.');
         }
         return $this->id_cassa;
     }
@@ -266,12 +263,11 @@ class Intercassa extends Component {
 
     /**
      * Создать новую запись о платеже
+     *
      * @param null $amount
      * @param null $user_id
-     *
+     * @return array|bool
      * @throws IntercassaException
-     *
-     * @return int|null
      */
     protected function createPay($amount = null, $user_id = null) {
         if(!$user_id) {
@@ -295,8 +291,8 @@ class Intercassa extends Component {
 
     /**
      * Возвращает ЭЦП исходя из переданных данных
-     * @param array $dataSet
      *
+     * @param array $dataSet
      * @return string
      */
     private function createSign (Array $dataSet) {
@@ -314,6 +310,5 @@ class Intercassa extends Component {
         $sign = base64_encode(md5($signString, true)); // берем MD5 хэш в бинарном виде по сформированной строке и кодируем в BASE64
         return $sign;
     }
-
 
 } 

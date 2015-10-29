@@ -16,18 +16,27 @@ use \yii\base\Action;
 use vision\interkassa\exceptions\IntercassaException;
 
 
-class IntercassaAction extends Action{
+class IntercassaAction extends Action {
 
 
-    /*
+    /**
      * В данном методе прописываем логику в случае удачного платежа,
      * в аргументах передаются данные платежа,
-     * их описание можно глянуть Intercassa::save_fields
-     * */
+     *
+     * @param $model_intercassa
+     * @return bool
+     */
     public function successPay($model_intercassa){
+        if(is_callable(\Yii::$app->intercassa->successPay)){
+            return call_user_func (\Yii::$app->intercassa->successPay, $model_intercassa);
+        }
         return false;
     }
 
+
+    /**
+     * @throws \yii\db\Exception
+     */
     public function run()
     {
         $response = \Yii::$app->response;
@@ -44,7 +53,6 @@ class IntercassaAction extends Action{
                 $status_answer = 200;
                 $response->content = 'Ok';
             }
-
         } catch(IntercassaException $e) {
             $transaction->rollback();
         }
@@ -54,6 +62,10 @@ class IntercassaAction extends Action{
     }
 
 
+    /**
+     * @param $model_intercassa
+     * @throws IntercassaException
+     */
     protected function runBusinessLogic($model_intercassa) {
         if(!$this->successPay($model_intercassa)) {
             throw new IntercassaException('error in business logic');
@@ -61,12 +73,13 @@ class IntercassaAction extends Action{
     }
 
 
+    /**
+     * @return mixed
+     */
     protected function updatePay() {
         $dataPost = \Yii::$app->request->post();
         $userIp   = \Yii::$app->request->userIP;
-
         return \Yii::$app->intercassa->updatePay($userIp, $dataPost);
 
     }
-
 } 

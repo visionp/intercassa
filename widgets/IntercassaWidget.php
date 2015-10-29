@@ -47,6 +47,10 @@ class IntercassaWidget extends Widget {
     private $method      = 'post';
 
 
+    /**
+     * @return array
+     * @throws IntercassaException
+     */
     protected function getConfigFields() {
         $_config_fields = \Yii::$app->intercassa->configFields;
         $config_fields = array_merge(
@@ -76,6 +80,10 @@ class IntercassaWidget extends Widget {
     }
 
 
+    /**
+     * @return string
+     * @throws IntercassaException
+     */
     protected function getFields() {
         $contentFields = '';
         $configFields = $this->getConfigFields();

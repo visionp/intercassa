@@ -4,6 +4,10 @@
  * User: VisioN
  * Date: 20.04.2015
  * Time: 15:40
+ *
+ * Intercassa exception
+ * for specific exceptions
+ *
  */
 
 namespace vision\interkassa\exceptions;
@@ -12,6 +16,7 @@ namespace vision\interkassa\exceptions;
 class IntercassaException extends  \yii\base\UserException {
 
     public $post;
+
 
     public function __construct($message = null, $code = 0, \Exception $previous = null, $post = [])
     {
